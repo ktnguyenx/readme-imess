@@ -207,7 +207,7 @@ extension ChatConfig {
 			topInset: max(canvas?.topInset ?? 34, 16),
 			bottomInset: max(canvas?.bottomInset ?? 34, 16),
 			bubbleGap: max(canvas?.bubbleGap ?? 26, 12),
-			maxBubbleWidthRatio: min(max(canvas?.maxBubbleWidthRatio ?? 0.72, 0.35), 0.9),
+			maxBubbleWidthRatio: min(max(canvas?.maxBubbleWidthRatio ?? 0.82, 0.35), 0.9),
 			fontSize: max(canvas?.fontSize ?? 22, 16),
 			typingEnabled: typingIndicator?.enabled ?? true,
 			typingSide: typingIndicator?.side ?? .left,
@@ -455,10 +455,6 @@ struct ChatRenderer {
 		var yCursor = config.topInset
 		var bubbleLayouts: [BubbleLayout] = []
 
-		if config.typingEnabled {
-			yCursor += typingHeight + config.bubbleGap
-		}
-
 		for (index, message) in config.messages.enumerated() {
 			let padding = message.side == .left ? leftHorizontalPadding : rightHorizontalPadding
 			let availableTextWidth = maxBubbleWidth - (padding * 2)
@@ -677,8 +673,6 @@ struct ChatRenderer {
 			let context = graphicsContext.cgContext
 			graphicsContext.shouldAntialias = true
 			context.interpolationQuality = .high
-			context.translateBy(x: 0, y: CGFloat(height))
-			context.scaleBy(x: 1, y: -1)
 
 			NSColor.clear.setFill()
 			NSBezierPath(rect: NSRect(x: 0, y: 0, width: width, height: height)).fill()
@@ -691,7 +685,7 @@ struct ChatRenderer {
 			if let typing = layout.typingIndicator {
 				let state = renderState(for: progress, animation: typing.animation)
 				if state.opacity > 0.001 {
-					try drawTypingIndicator(typing, state: state, at: seconds, scale: scale)
+					try drawTypingIndicator(typing, layout: layout, state: state, at: seconds, scale: scale)
 				}
 			}
 
@@ -704,7 +698,7 @@ struct ChatRenderer {
 				if let statusAnimation = bubble.statusAnimation, bubble.status != nil {
 					let statusState = renderState(for: progress, animation: statusAnimation, entryTranslate: 6, exitTranslate: 4, entryScale: 0.88, exitScale: 0.95)
 					if statusState.opacity > 0.001 {
-						try drawStatus(for: bubble, state: statusState, scale: scale)
+						try drawStatus(for: bubble, layout: layout, state: statusState, scale: scale)
 					}
 				}
 			}
@@ -715,7 +709,8 @@ struct ChatRenderer {
 
 			let frameProperties: [CFString: Any] = [
 				kCGImagePropertyGIFDictionary: [
-					kCGImagePropertyGIFDelayTime: delayTime
+					kCGImagePropertyGIFDelayTime: delayTime,
+					kCGImagePropertyGIFUnclampedDelayTime: delayTime
 				]
 			]
 			CGImageDestinationAddImage(destination, frameImage, frameProperties as CFDictionary)
@@ -727,30 +722,43 @@ struct ChatRenderer {
 	}
 
 	private func makeBubbleAnimation(for index: Int, totalMessages: Int) -> BubbleAnimation {
-		let firstStart = config.typingEnabled ? 0.22 : 0.10
-		let lastStart = min(0.68, firstStart + 0.46)
-		let start: Double
-		if totalMessages <= 1 {
-			start = firstStart
+		let visibleStart: Double
+		if config.typingEnabled {
+			if totalMessages == 1 {
+				visibleStart = 0.24
+			} else if totalMessages == 3 {
+				visibleStart = [0.24, 0.40, 0.64][index]
+			} else if index == 0 {
+				visibleStart = 0.24
+			} else {
+				let remainingCount = totalMessages - 1
+				let lastVisibleStart = min(0.76, 0.40 + (0.16 * Double(max(0, totalMessages - 2))))
+				let step = remainingCount <= 1 ? 0 : (lastVisibleStart - 0.40) / Double(remainingCount - 1)
+				visibleStart = 0.40 + (Double(index - 1) * step)
+			}
+		} else if totalMessages <= 1 {
+			visibleStart = 0.16
 		} else {
-			let step = (lastStart - firstStart) / Double(totalMessages - 1)
-			start = firstStart + (Double(index) * step)
+			let firstVisibleStart = 0.16
+			let lastVisibleStart = min(0.78, firstVisibleStart + 0.18 * Double(totalMessages - 1))
+			let step = (lastVisibleStart - firstVisibleStart) / Double(totalMessages - 1)
+			visibleStart = firstVisibleStart + (Double(index) * step)
 		}
 
 		return BubbleAnimation(
-			fadeInStart: max(0, start - 0.06),
-			visibleStart: start,
-			holdEnd: 0.92,
+			fadeInStart: max(0, visibleStart - 0.06),
+			visibleStart: visibleStart,
+			holdEnd: 0.90,
 			fadeOutEnd: 1.0
 		)
 	}
 
 	private func makeStatusAnimation(for bubbleAnimation: BubbleAnimation) -> BubbleAnimation {
-		let statusStart = min(bubbleAnimation.visibleStart + 0.10, 0.84)
+		let statusStart = min(bubbleAnimation.visibleStart + 0.12, 0.84)
 		return BubbleAnimation(
-			fadeInStart: max(statusStart - 0.06, bubbleAnimation.visibleStart + 0.02),
+			fadeInStart: max(statusStart - 0.06, bubbleAnimation.visibleStart + 0.06),
 			visibleStart: statusStart,
-			holdEnd: 0.92,
+			holdEnd: 0.90,
 			fadeOutEnd: 1.0
 		)
 	}
@@ -761,18 +769,17 @@ struct ChatRenderer {
 		}
 
 		let typingX = config.typingSide == .left ? config.sideInset : config.canvasWidth - config.sideInset - typingWidth
-		let holdEnd = max(0.12, makeBubbleAnimation(for: 0, totalMessages: config.messages.count).visibleStart - 0.04)
 		let animation = BubbleAnimation(
-			fadeInStart: 0.04,
+			fadeInStart: 0.05,
 			visibleStart: 0.08,
-			holdEnd: holdEnd,
-			fadeOutEnd: min(holdEnd + 0.06, 0.28)
+			holdEnd: 0.18,
+			fadeOutEnd: 0.22
 		)
 
 		return TypingIndicatorLayout(
 			side: config.typingSide,
 			x: typingX,
-			y: max(config.topInset, firstBubbleY - config.bubbleGap - typingHeight),
+			y: firstBubbleY,
 			width: typingWidth,
 			height: typingHeight,
 			bubbleColor: config.typingSide == .left ? config.theme.incomingBubbleColor : config.theme.outgoingBubbleColor,
@@ -803,7 +810,7 @@ struct ChatRenderer {
 		let tailX = bubble.side == .left ? -3.0 : bubble.width - 16.0
 		let textAnchor = bubble.side == .right ? "end" : "start"
 		let textX = bubble.side == .right ? bubble.width - bubble.textLeadingInset : bubble.textLeadingInset
-		let statusX = bubble.side == .right ? bubble.width : 0.0
+		let statusX = textX
 		let statusAnchor = bubble.side == .right ? "end" : "start"
 
 		let textContent = bubble.lines.enumerated().map { index, line in
@@ -838,7 +845,7 @@ struct ChatRenderer {
 		"""
 	}
 
-	private func drawTypingIndicator(_ typing: TypingIndicatorLayout, state: BubbleRenderState, at seconds: Double, scale: Double) throws {
+	private func drawTypingIndicator(_ typing: TypingIndicatorLayout, layout: ChatLayout, state: BubbleRenderState, at seconds: Double, scale: Double) throws {
 		guard let context = NSGraphicsContext.current?.cgContext else {
 			return
 		}
@@ -857,12 +864,12 @@ struct ChatRenderer {
 		fillColor.setFill()
 		NSBezierPath(roundedRect: NSRect(
 			x: typing.x * scale,
-			y: typing.y * scale,
+			y: canvasRectY(top: typing.y, height: typing.height, canvasHeight: layout.canvasHeight, scale: scale),
 			width: typing.width * scale,
 			height: typing.height * scale
 		), xRadius: 21 * scale, yRadius: 21 * scale).fill()
 
-		try drawTail(side: typing.side, bubbleX: typing.x, bubbleY: typing.y, bubbleWidth: typing.width, bubbleHeight: typing.height, colorHex: typing.bubbleColor, scale: scale)
+		try drawTail(side: typing.side, bubbleX: typing.x, bubbleY: typing.y, bubbleWidth: typing.width, bubbleHeight: typing.height, canvasHeight: layout.canvasHeight, colorHex: typing.bubbleColor, scale: scale)
 
 		let dotColor = try nsColor(from: typing.dotColor)
 		let dotCenters = [29.0, 46.0, 63.0]
@@ -872,7 +879,7 @@ struct ChatRenderer {
 			dotColor.withAlphaComponent(dotOpacity(at: seconds, phaseOffset: dotOffsets[index])).setFill()
 			NSBezierPath(ovalIn: NSRect(
 				x: (typing.x + centerX - 4.5) * scale,
-				y: (typing.y + 21 - 4.5) * scale,
+				y: canvasRectY(top: typing.y + 21 - 4.5, height: 9, canvasHeight: layout.canvasHeight, scale: scale),
 				width: 9 * scale,
 				height: 9 * scale
 			)).fill()
@@ -900,24 +907,32 @@ struct ChatRenderer {
 		fillColor.setFill()
 		NSBezierPath(roundedRect: NSRect(
 			x: bubble.x * scale,
-			y: bubble.y * scale,
+			y: canvasRectY(top: bubble.y, height: bubble.height, canvasHeight: layout.canvasHeight, scale: scale),
 			width: bubble.width * scale,
 			height: bubble.height * scale
 		), xRadius: bubbleCornerRadius * scale, yRadius: bubbleCornerRadius * scale).fill()
 
-		try drawTail(side: bubble.side, bubbleX: bubble.x, bubbleY: bubble.y, bubbleWidth: bubble.width, bubbleHeight: bubble.height, colorHex: bubble.fillColor, scale: scale)
+		try drawTail(side: bubble.side, bubbleX: bubble.x, bubbleY: bubble.y, bubbleWidth: bubble.width, bubbleHeight: bubble.height, canvasHeight: layout.canvasHeight, colorHex: bubble.fillColor, scale: scale)
 
 		let font = NSFont.systemFont(ofSize: CGFloat(config.fontSize * scale), weight: .medium)
 		let textColor = try nsColor(from: bubble.textColor)
+		let paragraphStyle = NSMutableParagraphStyle()
+		paragraphStyle.alignment = bubble.side == .right ? .right : .left
 		let attributes: [NSAttributedString.Key: Any] = [
 			.font: font,
-			.foregroundColor: textColor
+			.foregroundColor: textColor,
+			.paragraphStyle: paragraphStyle
 		]
 
 		for (index, line) in bubble.lines.enumerated() {
 			let lineRect = NSRect(
 				x: (bubble.x + bubble.textLeadingInset) * scale,
-				y: (bubble.y + bubble.textTopInset + (Double(index) * layout.lineHeight)) * scale,
+				y: canvasRectY(
+					top: bubble.y + bubble.textTopInset + (Double(index) * layout.lineHeight),
+					height: layout.lineHeight,
+					canvasHeight: layout.canvasHeight,
+					scale: scale
+				),
 				width: (bubble.width - (bubble.textLeadingInset * 2)) * scale,
 				height: layout.lineHeight * scale
 			)
@@ -927,7 +942,7 @@ struct ChatRenderer {
 		context.restoreGState()
 	}
 
-	private func drawStatus(for bubble: BubbleLayout, state: BubbleRenderState, scale: Double) throws {
+	private func drawStatus(for bubble: BubbleLayout, layout: ChatLayout, state: BubbleRenderState, scale: Double) throws {
 		guard let status = bubble.status else {
 			return
 		}
@@ -948,24 +963,29 @@ struct ChatRenderer {
 
 		let font = NSFont.systemFont(ofSize: 14 * CGFloat(scale), weight: .medium)
 		let color = try nsColor(from: config.theme.statusColor)
+		let paragraphStyle = NSMutableParagraphStyle()
+		paragraphStyle.alignment = bubble.side == .right ? .right : .left
 		let attributes: [NSAttributedString.Key: Any] = [
 			.font: font,
-			.foregroundColor: color
+			.foregroundColor: color,
+			.paragraphStyle: paragraphStyle
 		]
-		let originX = bubble.side == .right
-			? (bubble.x + bubble.width - bubble.statusWidth) * scale
-			: bubble.x * scale
 		let rect = NSRect(
-			x: originX,
-			y: (bubble.y + bubble.height + 5) * scale,
-			width: bubble.statusWidth * scale + 2,
+			x: (bubble.x + bubble.textLeadingInset) * scale,
+			y: canvasRectY(
+				top: bubble.y + bubble.height + 5,
+				height: 18,
+				canvasHeight: layout.canvasHeight,
+				scale: scale
+			),
+			width: (bubble.width - (bubble.textLeadingInset * 2)) * scale,
 			height: 18 * scale
 		)
 		(status as NSString).draw(in: rect, withAttributes: attributes)
 		context.restoreGState()
 	}
 
-	private func drawTail(side: BubbleSide, bubbleX: Double, bubbleY: Double, bubbleWidth: Double, bubbleHeight: Double, colorHex: String, scale: Double) throws {
+	private func drawTail(side: BubbleSide, bubbleX: Double, bubbleY: Double, bubbleWidth: Double, bubbleHeight: Double, canvasHeight: Double, colorHex: String, scale: Double) throws {
 		let color = try nsColor(from: colorHex)
 		color.setFill()
 
@@ -976,38 +996,38 @@ struct ChatRenderer {
 		let bottomY = bubbleY + bubbleHeight - 1
 
 		if side == .left {
-			path.move(to: NSPoint(x: (baseX + 13) * scaleValue, y: (topY + 1) * scaleValue))
+			path.move(to: NSPoint(x: (baseX + 13) * scaleValue, y: canvasPointY(top: topY + 1, canvasHeight: canvasHeight, scale: scale)))
 			path.curve(
-				to: NSPoint(x: (baseX - 2) * scaleValue, y: (bottomY - 3) * scaleValue),
-				controlPoint1: NSPoint(x: (baseX + 5) * scaleValue, y: (topY + 6) * scaleValue),
-				controlPoint2: NSPoint(x: (baseX - 1) * scaleValue, y: (bottomY - 7) * scaleValue)
+				to: NSPoint(x: (baseX - 2) * scaleValue, y: canvasPointY(top: bottomY - 3, canvasHeight: canvasHeight, scale: scale)),
+				controlPoint1: NSPoint(x: (baseX + 5) * scaleValue, y: canvasPointY(top: topY + 6, canvasHeight: canvasHeight, scale: scale)),
+				controlPoint2: NSPoint(x: (baseX - 1) * scaleValue, y: canvasPointY(top: bottomY - 7, canvasHeight: canvasHeight, scale: scale))
 			)
 			path.curve(
-				to: NSPoint(x: (baseX + 10) * scaleValue, y: bottomY * scaleValue),
-				controlPoint1: NSPoint(x: (baseX + 1) * scaleValue, y: (bottomY + 2) * scaleValue),
-				controlPoint2: NSPoint(x: (baseX + 6) * scaleValue, y: (bottomY + 1) * scaleValue)
+				to: NSPoint(x: (baseX + 10) * scaleValue, y: canvasPointY(top: bottomY, canvasHeight: canvasHeight, scale: scale)),
+				controlPoint1: NSPoint(x: (baseX + 1) * scaleValue, y: canvasPointY(top: bottomY + 2, canvasHeight: canvasHeight, scale: scale)),
+				controlPoint2: NSPoint(x: (baseX + 6) * scaleValue, y: canvasPointY(top: bottomY + 1, canvasHeight: canvasHeight, scale: scale))
 			)
 			path.curve(
-				to: NSPoint(x: (baseX + 15) * scaleValue, y: (topY + 8) * scaleValue),
-				controlPoint1: NSPoint(x: (baseX + 14) * scaleValue, y: (bottomY - 1) * scaleValue),
-				controlPoint2: NSPoint(x: (baseX + 16) * scaleValue, y: (topY + 13) * scaleValue)
+				to: NSPoint(x: (baseX + 15) * scaleValue, y: canvasPointY(top: topY + 8, canvasHeight: canvasHeight, scale: scale)),
+				controlPoint1: NSPoint(x: (baseX + 14) * scaleValue, y: canvasPointY(top: bottomY - 1, canvasHeight: canvasHeight, scale: scale)),
+				controlPoint2: NSPoint(x: (baseX + 16) * scaleValue, y: canvasPointY(top: topY + 13, canvasHeight: canvasHeight, scale: scale))
 			)
 		} else {
-			path.move(to: NSPoint(x: (baseX - 13) * scaleValue, y: (topY + 1) * scaleValue))
+			path.move(to: NSPoint(x: (baseX - 13) * scaleValue, y: canvasPointY(top: topY + 1, canvasHeight: canvasHeight, scale: scale)))
 			path.curve(
-				to: NSPoint(x: (baseX + 2) * scaleValue, y: (bottomY - 3) * scaleValue),
-				controlPoint1: NSPoint(x: (baseX - 5) * scaleValue, y: (topY + 6) * scaleValue),
-				controlPoint2: NSPoint(x: (baseX + 1) * scaleValue, y: (bottomY - 7) * scaleValue)
+				to: NSPoint(x: (baseX + 2) * scaleValue, y: canvasPointY(top: bottomY - 3, canvasHeight: canvasHeight, scale: scale)),
+				controlPoint1: NSPoint(x: (baseX - 5) * scaleValue, y: canvasPointY(top: topY + 6, canvasHeight: canvasHeight, scale: scale)),
+				controlPoint2: NSPoint(x: (baseX + 1) * scaleValue, y: canvasPointY(top: bottomY - 7, canvasHeight: canvasHeight, scale: scale))
 			)
 			path.curve(
-				to: NSPoint(x: (baseX - 10) * scaleValue, y: bottomY * scaleValue),
-				controlPoint1: NSPoint(x: (baseX - 1) * scaleValue, y: (bottomY + 2) * scaleValue),
-				controlPoint2: NSPoint(x: (baseX - 6) * scaleValue, y: (bottomY + 1) * scaleValue)
+				to: NSPoint(x: (baseX - 10) * scaleValue, y: canvasPointY(top: bottomY, canvasHeight: canvasHeight, scale: scale)),
+				controlPoint1: NSPoint(x: (baseX - 1) * scaleValue, y: canvasPointY(top: bottomY + 2, canvasHeight: canvasHeight, scale: scale)),
+				controlPoint2: NSPoint(x: (baseX - 6) * scaleValue, y: canvasPointY(top: bottomY + 1, canvasHeight: canvasHeight, scale: scale))
 			)
 			path.curve(
-				to: NSPoint(x: (baseX - 15) * scaleValue, y: (topY + 8) * scaleValue),
-				controlPoint1: NSPoint(x: (baseX - 14) * scaleValue, y: (bottomY - 1) * scaleValue),
-				controlPoint2: NSPoint(x: (baseX - 16) * scaleValue, y: (topY + 13) * scaleValue)
+				to: NSPoint(x: (baseX - 15) * scaleValue, y: canvasPointY(top: topY + 8, canvasHeight: canvasHeight, scale: scale)),
+				controlPoint1: NSPoint(x: (baseX - 14) * scaleValue, y: canvasPointY(top: bottomY - 1, canvasHeight: canvasHeight, scale: scale)),
+				controlPoint2: NSPoint(x: (baseX - 16) * scaleValue, y: canvasPointY(top: topY + 13, canvasHeight: canvasHeight, scale: scale))
 			)
 		}
 
@@ -1020,6 +1040,14 @@ struct ChatRenderer {
 			return String(Int(number))
 		}
 		return String(format: "%.2f", number)
+	}
+
+	private func canvasRectY(top: Double, height: Double, canvasHeight: Double, scale: Double) -> Double {
+		(canvasHeight - top - height) * scale
+	}
+
+	private func canvasPointY(top: Double, canvasHeight: Double, scale: Double) -> Double {
+		(canvasHeight - top) * scale
 	}
 }
 
@@ -1121,7 +1149,7 @@ struct readme_imess {
 			title: "Animated iMessage-style README conversation for Your Name",
 			description: "A playful README intro that loops like an iMessage chat.",
 			animationSeconds: 12,
-			canvas: CanvasConfig(width: 960, height: nil, sideInset: 88, topInset: 34, bottomInset: 34, bubbleGap: 26, maxBubbleWidthRatio: 0.72, fontSize: 22),
+			canvas: CanvasConfig(width: 960, height: nil, sideInset: 88, topInset: 34, bottomInset: 34, bubbleGap: 26, maxBubbleWidthRatio: 0.82, fontSize: 22),
 			theme: ThemeConfig(incomingBubbleColor: "#E9E9EB", outgoingBubbleColor: "#509DF6", incomingTextColor: "#111111", outgoingTextColor: "#FFFFFF", statusColor: "#7D7D82", backgroundColor: nil),
 			typingIndicator: TypingIndicatorConfig(enabled: true, side: .left),
 			gif: GIFConfig(fps: 12, scale: 1.0, loopCount: 0),

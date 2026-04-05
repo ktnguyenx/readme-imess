@@ -2,7 +2,7 @@
   "animationSeconds": 12,
   "canvas": {
     "fontSize": 22,
-    "maxBubbleWidthRatio": 0.72,
+    "maxBubbleWidthRatio": 0.82,
     "sideInset": 88,
     "topInset": 34,
     "width": 960

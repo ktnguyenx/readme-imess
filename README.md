@@ -4,8 +4,8 @@
 
 It takes a simple JSON config and outputs:
 
-- an animated SVG for crisp README embeds
-- an optional animated GIF rendered natively on macOS
+- An animated SVG for crisp README embeds
+- An optional animated GIF rendered natively on macOS (P.S. Use the GIF version if you want an 8-bit, more pixelated style!)
 
 ## What It Does
 

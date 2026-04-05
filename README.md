@@ -1,11 +1,13 @@
 # readme-imess
 
-`readme-imess` is a small Swift CLI that generates custom animated iMessage-style assets for more aesthetically pleasing GitHub READMEs.
+A small Swift CLI that generates custom animated iMessage-style assets for more aesthetically pleasing GitHub READMEs.
 
 It takes a simple JSON config and outputs:
 
 - An animated SVG for crisp README embeds
 - An optional animated GIF rendered natively on macOS
+
+For now, `readme-imess` is macOS-only because the generator depends on native Apple graphics and font APIs.
 
 ## What It Does
 

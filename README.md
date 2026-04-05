@@ -7,6 +7,18 @@ It takes a simple JSON config and outputs:
 - An animated SVG for crisp README embeds
 - An optional animated GIF rendered natively on macOS (P.S. Use the GIF version if you want an 8-bit, more pixelated style!)
 
+## Sample Output
+
+Generated from [examples/ktnguyenx.json](/Users/khanhnguyen/Downloads/college/projects/readme-imess/examples/ktnguyenx.json):
+
+### SVG Version
+
+![Animated iMessage-style SVG sample](./output/ktnguyenx.svg)
+
+### GIF Version
+
+![Animated iMessage-style GIF sample](./output/ktnguyenx.gif)
+
 ## What It Does
 
 You define your own chat messages, colors, timing, and title/description metadata, then run one command to generate a ready-to-embed asset!
@@ -142,4 +154,3 @@ swift run readme-imess generate examples/ktnguyenx.json
 
 - GIF export uses native macOS drawing, so this project is currently macOS-focused.
 - SVG is usually the best default for README usage because it stays sharp and is often smaller.
-

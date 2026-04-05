@@ -5,19 +5,7 @@
 It takes a simple JSON config and outputs:
 
 - An animated SVG for crisp README embeds
-- An optional animated GIF rendered natively on macOS (P.S. Use the GIF version if you want an 8-bit, more pixelated style!)
-
-## Sample Output
-
-Generated from [examples/ktnguyenx.json](/Users/khanhnguyen/Downloads/college/projects/readme-imess/examples/ktnguyenx.json):
-
-### SVG Version
-
-![Animated iMessage-style SVG sample](./output/ktnguyenx.svg)
-
-### GIF Version
-
-![Animated iMessage-style GIF sample](./output/ktnguyenx.gif)
+- An optional animated GIF rendered natively on macOS
 
 ## What It Does
 
@@ -31,6 +19,30 @@ The generator handles:
 - A typing indicator intro
 - Optional delivered/status text
 - Transparent or custom backgrounds
+
+## Sample Output
+
+Generated from [examples/ktnguyenx.json](/Users/khanhnguyen/Downloads/college/projects/readme-imess/examples/ktnguyenx.json):
+
+### SVG Version
+
+<p align="center">
+  <img src="./assets/sample-output.svg" width="92%" alt="Animated iMessage-style SVG sample" />
+</p>
+
+<p align="center">
+  Sharp, lightweight, and usually the best choice for GitHub README embeds.
+</p>
+
+### GIF Version
+
+<p align="center">
+  <img src="./assets/sample-output.gif" width="92%" alt="Animated iMessage-style GIF sample" />
+</p>
+
+<p align="center">
+  A more pixelated, 8-bit-style export if you want a softer retro look.
+</p>
 
 ## Quick Start
 

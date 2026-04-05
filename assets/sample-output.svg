@@ -1,0 +1,207 @@
+<svg width="960" height="289" viewBox="0 0 960 289" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Animated iMessage-style README conversation for Lorraine Nguyen</title>
+  <desc id="desc">A minimal conversation with a typing indicator and three iMessage-inspired bubbles that animate in from alternating sides.</desc>
+  <style>
+    text {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 22px;
+      font-weight: 500;
+    }
+
+    .status {
+      fill: #7D7D82;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .typing,
+    .bubble,
+    .status-mark {
+      opacity: 0;
+      transform-box: fill-box;
+      transform-origin: center bottom;
+    }
+
+    #typing {
+      animation: typing-cycle 12.00s infinite;
+    }
+
+    #typing-dot-1 {
+      animation: dot-blink 1s infinite 0.10s;
+    }
+
+    #typing-dot-2 {
+      animation: dot-blink 1s infinite 0.28s;
+    }
+
+    #typing-dot-3 {
+      animation: dot-blink 1s infinite 0.46s;
+    }
+
+    #bubble-1 {
+      animation: bubble-1-cycle 12.00s infinite;
+    }
+
+    #bubble-2 {
+      animation: bubble-2-cycle 12.00s infinite;
+    }
+
+    #bubble-3 {
+      animation: bubble-3-cycle 12.00s infinite;
+    }
+
+    #status-2 {
+      animation: status-2-cycle 12.00s infinite;
+    }
+
+    @keyframes typing-cycle {
+      0%, 5.00% {
+        opacity: 0;
+        transform: translateY(12.0px) scale(0.985);
+      }
+
+      8.00%, 18.00% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      22.00%, 100% {
+        opacity: 0;
+        transform: translateY(8.0px) scale(0.99);
+      }
+    }
+
+    @keyframes bubble-1-cycle {
+      0%, 18.00% {
+        opacity: 0;
+        transform: translateY(12.0px) scale(0.985);
+      }
+
+      24.00%, 90.00% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      100.00%, 100% {
+        opacity: 0;
+        transform: translateY(8.0px) scale(0.99);
+      }
+    }
+
+    @keyframes bubble-2-cycle {
+      0%, 34.00% {
+        opacity: 0;
+        transform: translateY(12.0px) scale(0.985);
+      }
+
+      40.00%, 90.00% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      100.00%, 100% {
+        opacity: 0;
+        transform: translateY(8.0px) scale(0.99);
+      }
+    }
+
+    @keyframes bubble-3-cycle {
+      0%, 58.00% {
+        opacity: 0;
+        transform: translateY(12.0px) scale(0.985);
+      }
+
+      64.00%, 90.00% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      100.00%, 100% {
+        opacity: 0;
+        transform: translateY(8.0px) scale(0.99);
+      }
+    }
+
+    @keyframes status-2-cycle {
+      0%, 46.00% {
+        opacity: 0;
+        transform: translateY(6px) scale(0.88);
+      }
+
+      52.00% {
+        opacity: 1;
+        transform: translateY(0) scale(1.05);
+      }
+
+      90.00% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      100.00%, 100% {
+        opacity: 0;
+        transform: translateY(4px) scale(0.95);
+      }
+    }
+
+    @keyframes dot-blink {
+      0%, 80%, 100% {
+        opacity: 0.25;
+      }
+
+      40% {
+        opacity: 1;
+      }
+    }
+  </style>
+
+  <defs>
+    <symbol id="curl-right" viewBox="0 0 17 21">
+      <path d="M16.8869 20.1846C11.6869 20.9846 6.55352 18.1212 4.88685 16.2879C6.60472 12.1914 -4.00107 2.24186 2.99893 2.24148C4.61754 2.24148 6 -1.9986 11.8869 1.1846C11.9081 2.47144 11.8869 6.92582 11.8869 7.6842C11.8869 18.1842 17.8869 19.5813 16.8869 20.1846Z"/>
+    </symbol>
+    <symbol id="curl-left" viewBox="0 0 17 21">
+      <path d="M0.11315 20.1846C5.31315 20.9846 10.4465 18.1212 12.1132 16.2879C10.3953 12.1914 21.0011 2.24186 14.0011 2.24148C12.3825 2.24148 11 -1.9986 5.11315 1.1846C5.09194 2.47144 5.11315 6.92582 5.11315 7.6842C5.11315 18.1842 -0.88685 19.5813 0.11315 20.1846Z"/>
+    </symbol>
+  </defs>
+
+
+
+  <g transform="translate(88 34)">
+    <g id="typing" class="typing">
+      <rect x="0" y="0" width="92" height="42" rx="21" fill="#E9E9EB"/>
+      <use href="#curl-left" x="-4" y="22" width="16" height="17" fill="#E9E9EB"/>
+      <circle id="typing-dot-1" cx="29" cy="21" r="4.5" fill="#7D7D82"/>
+      <circle id="typing-dot-2" cx="46" cy="21" r="4.5" fill="#7D7D82"/>
+      <circle id="typing-dot-3" cx="63" cy="21" r="4.5" fill="#7D7D82"/>
+    </g>
+  </g>
+
+  <g transform="translate(88 34)">
+    <g id="bubble-1" class="bubble">
+      <rect x="0" y="0" width="205" height="50" rx="25" fill="#E9E9EB"/>
+      <use href="#curl-left" x="-3" y="30" width="19" height="20" fill="#E9E9EB"/>
+      <text text-anchor="start" class="" fill="#111111"><tspan x="26" y="34">Hi, I'm Lorraine!</tspan></text>
+    </g>
+  </g>
+
+  <g transform="translate(660 110)">
+    <g id="bubble-2" class="bubble">
+      <rect x="0" y="0" width="212" height="50" rx="25" fill="#509DF6"/>
+      <use href="#curl-right" x="196" y="30" width="19" height="20" fill="#509DF6"/>
+      <text text-anchor="end" class="" fill="#FFFFFF"><tspan x="188" y="34">CS @ Bryn Mawr</tspan></text>
+    </g>
+  </g>
+  <g transform="translate(660 110)">
+    <g id="status-2" class="status-mark">
+      <text x="188" y="69" text-anchor="end" class="status">Delivered</text>
+    </g>
+  </g>
+
+  <g transform="translate(88 205)">
+    <g id="bubble-3" class="bubble">
+      <rect x="0" y="0" width="706" height="50" rx="25" fill="#E9E9EB"/>
+      <use href="#curl-left" x="-3" y="30" width="19" height="20" fill="#E9E9EB"/>
+      <text text-anchor="start" class="" fill="#111111"><tspan x="26" y="34">I love creative programming and designing thoughtful interfaces &lt;3</tspan></text>
+    </g>
+  </g>
+</svg>

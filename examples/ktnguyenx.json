@@ -1,0 +1,43 @@
+{
+  "animationSeconds": 12,
+  "canvas": {
+    "fontSize": 22,
+    "maxBubbleWidthRatio": 0.72,
+    "sideInset": 88,
+    "topInset": 34,
+    "width": 960
+  },
+  "description": "A minimal conversation with a typing indicator and three iMessage-inspired bubbles that animate in from alternating sides.",
+  "gif": {
+    "fps": 12,
+    "loopCount": 0,
+    "scale": 1
+  },
+  "messages": [
+    {
+      "side": "left",
+      "text": "Hi, I'm Lorraine!"
+    },
+    {
+      "side": "right",
+      "status": "Delivered",
+      "text": "CS @ Bryn Mawr"
+    },
+    {
+      "side": "left",
+      "text": "I love creative programming and designing thoughtful interfaces <3"
+    }
+  ],
+  "theme": {
+    "incomingBubbleColor": "#E9E9EB",
+    "incomingTextColor": "#111111",
+    "outgoingBubbleColor": "#509DF6",
+    "outgoingTextColor": "#FFFFFF",
+    "statusColor": "#7D7D82"
+  },
+  "title": "Animated iMessage-style README conversation for Lorraine Nguyen",
+  "typingIndicator": {
+    "enabled": true,
+    "side": "left"
+  }
+}

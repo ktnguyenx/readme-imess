@@ -91,15 +91,19 @@ swift run readme-imess generate examples/my-profile.json \
 
 ## Using It With A Profile README
 
-If your special profile repo is cloned inside this project, you can write directly into its assets folder:
+Your GitHub profile repo does not need to live inside this project.
+
+Generate the files wherever you want, then reference them from your profile `README.md`.
+
+For example, you can write directly into a profile repo stored somewhere else on your Mac:
 
 ```bash
-swift run readme-imess generate examples/ktnguyenx.json \
-  --svg ktnguyenx/assets/readme-chat.svg \
-  --gif ktnguyenx/assets/readme-chat.gif
+swift run readme-imess generate examples/my-profile.json \
+  --svg /Users/your-name/code/your-username/assets/readme-chat.svg \
+  --gif /Users/your-name/code/your-username/assets/readme-chat.gif
 ```
 
-Then embed it in your profile README:
+Then in your profile repo's `README.md`:
 
 ```html
 <p align="center">
@@ -107,7 +111,17 @@ Then embed it in your profile README:
 </p>
 ```
 
-If you want to use the GIF instead, switch the `src` to `./assets/readme-chat.gif`.
+If you prefer the GIF version, switch the `src` to `./assets/readme-chat.gif`.
+
+Or generate them in this repo first:
+
+```bash
+swift run readme-imess generate examples/my-profile.json \
+  --svg output/my-profile.svg \
+  --gif output/my-profile.gif
+```
+
+Then move them into your profile repo's `assets/` folder.
 
 ## Config Reference
 
